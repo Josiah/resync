@@ -1,0 +1,21 @@
+{
+  "name": "resync",
+  "description": "Yieldable node style callbacks",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Josiah/resync.git"
+  },
+  "version": "0.0.0",
+  "main": "index.js",
+  "engines": {
+    "node": ">= 0.11.0",
+    "iojs": "*"
+  },
+  "devDependencies": {
+    "code": "^1.3.0",
+    "lab": "^5.5.0"
+  },
+  "scripts": {
+    "test": "lab -vct 100"
+  }
+}
