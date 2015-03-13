@@ -42,6 +42,9 @@ var Resync = function Resync(generator) {
         try {
           var call = calls.shift();
 
+          if (call && call.length > 1) {
+            call = [call];
+          }
 
           var current = iterator.next.apply(iterator, call);
 

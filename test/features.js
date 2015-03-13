@@ -76,6 +76,21 @@ lab.experiment('Resync', function () {
       return next();
     });
   });
+  lab.test('multiple parameters', function (next) {
+    var run = function (next) {
+      return next(null, 1, 'one');
+    };
+
+    var resync = Resync(function * (wait) {
+      var result = yield run(wait());
+
+      Code.expect(result, 'yeilded result is an array of params').to.be.an.array();
+      Code.expect(result[0], 'first param is 1').to.equal(1);
+      Code.expect(result[1], 'second param is one').to.equal('one');
+    });
+
+    resync(next);
+  });
   lab.test('callback error handling', function (next) {
     var error = function (next) {
       return next(new Error('Error passed to callback'));
