@@ -2,7 +2,7 @@
 
 var Lab = require('lab');
 var Code = require('code');
-var Resync = require('resync');
+var Resync = require('../index');
 
 var lab = exports.lab = Lab.script();
 
