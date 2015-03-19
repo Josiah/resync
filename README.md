@@ -1,5 +1,8 @@
 # Resync
 
+[![Build Status](https://travis-ci.org/Josiah/resync.svg)](https://travis-ci.org/Josiah/resync)
+[![Coverage Status](https://coveralls.io/repos/Josiah/resync/badge.svg)](https://coveralls.io/r/Josiah/resync)
+
 ## Usage
 
 ### Installation
