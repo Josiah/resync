@@ -50,3 +50,25 @@ loadProduct(111, function (err, product) {
   // Handle those errors & do something with your product
 });
 ```
+
+### Handling errors
+```js
+var Resync = require('resync');
+var Fs = require('fs');
+
+var loadProduct = Resync(function * (directory, wait) {
+  var files = yield Fs.readdir(directory, wait({
+    err: function (err) {
+      // Handle your recoverable errors here, then you can either return a value
+      // to be yielded or throw an error to be passed on to the callback
+      return [];
+    }
+  }));
+
+  return result.files;
+});
+
+loadProduct('/var/awesome/dir', function (err, files) {
+  // Handle those errors or do something with your files
+});
+```

@@ -109,7 +109,7 @@ lab.experiment('Resync', function () {
   });
   lab.test('thrown error handling', function (next) {
     var error = function (next) {
-      throw new Error('Error passed to callback');
+      throw new Error('Thrown error');
     };
 
     var resync = Resync(function * (wait) {
@@ -118,7 +118,48 @@ lab.experiment('Resync', function () {
 
     resync(function (err) {
       Code.expect(err, 'error should be passed to final callback').to.exist();
-      Code.expect(err.message, 'error should be the right error').to.equal('Error passed to callback');
+      Code.expect(err.message, 'error should be the right error').to.equal('Thrown error');
+
+      return next();
+    });
+  });
+  lab.test('error squashing via callback handling', function (next) {
+    var error = new Error('Error handled by callback');
+    var errorGenerator = function (next) {
+      return next(error);
+    };
+
+    var resync = Resync(function * (wait) {
+      var expected = {};
+      var result = yield errorGenerator(wait({err: function (err) {
+        Code.expect(err, 'error matches thrown error').to.equal(error);
+
+        return expected;
+      }}));
+
+      Code.expect(result, 'result is yielded through').to.equal(expected);
+    });
+
+    resync(next);
+  });
+  lab.test('error squashing via callback handling', function (next) {
+    var error1 = new Error('First error');
+    var error2 = new Error('Second error');
+    var errorGenerator = function (next) {
+      return next(error1);
+    };
+
+    var resync = Resync(function * (wait) {
+      var expected = {};
+      yield errorGenerator(wait({err: function (err) {
+        Code.expect(err, 'error matches thrown error').to.equal(error1);
+
+        throw error2;
+      }}));
+    });
+
+    resync(function (err) {
+      Code.expect(err, 'second error sent throug').to.equal(error2);
 
       return next();
     });

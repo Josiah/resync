@@ -16,10 +16,22 @@ var Resync = function Resync(generator) {
 
     // Wait generates callbacks which collect arguments and pass them back to
     // the generator
-    function wait() {
+    function wait(options) {
+      if (!options) {
+        options = {};
+      }
+
       return function next(err) {
         if (err) {
-          return last(err);
+          if (typeof options.err !== 'function') {
+            return last(err);
+          }
+
+          try {
+            calls.push([options.err(err)]);
+          } catch (thrownErr) {
+            return last(thrownErr);
+          }
         }
 
         calls.push([].slice.call(arguments, 1));
