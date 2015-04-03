@@ -2,8 +2,7 @@
 
 var Resync = function Resync(generator) {
   return function start() {
-
-    var calls = [];
+    var ops = [];
     var isRunning = false;
 
     // Switch the last parameter of this callback with the
@@ -22,19 +21,24 @@ var Resync = function Resync(generator) {
       }
 
       return function next(err) {
-        if (err) {
-          if (typeof options.err !== 'function') {
-            return last(err);
-          }
 
-          try {
-            calls.push([options.err(err)]);
-          } catch (thrownErr) {
-            return last(thrownErr);
-          }
+        if (err) {
+          ops.push(function () {
+            if (typeof options.err === 'function') {
+              return options.err(err);
+            }
+
+            throw err;
+          });
         }
 
-        calls.push([].slice.call(arguments, 1));
+        var value = [].slice.call(arguments, 1);
+
+        if (value.length === 1) {
+          value = value[0];
+        }
+
+        ops.push(function () { return value; });
 
         return run();
       };
@@ -51,24 +55,21 @@ var Resync = function Resync(generator) {
       isRunning = true;
 
       do {
+        var op = ops.shift();
+        var current;
+
         try {
-          var call = calls.shift();
-
-          if (call && call.length > 1) {
-            call = [call];
-          }
-
-          var current = iterator.next.apply(iterator, call);
-
-          if (current.done) {
-            last(null, current.value);
-            return;
-          }
+          current = iterator.next(op && op());
         } catch (err) {
           last(err);
           return;
         }
-      } while (calls.length > 0);
+
+        if (current.done) {
+          last(null, current.value);
+          return;
+        }
+      } while (ops.length > 0);
 
       isRunning = false;
     }
