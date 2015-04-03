@@ -1,6 +1,7 @@
 {
   "name": "resync",
   "description": "Yieldable node style callbacks",
+  "keywords": ["resync", "yeild", "async"],
   "repository": {
     "type": "git",
     "url": "https://github.com/Josiah/resync.git"
