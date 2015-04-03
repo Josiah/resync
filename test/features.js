@@ -93,7 +93,9 @@ lab.experiment('Resync', function () {
   });
   lab.test('callback error handling', function (next) {
     var error = function (next) {
-      return next(new Error('Error passed to callback'));
+      setTimeout(function () {
+        next(new Error('Error passed to callback'));
+      }, 5);
     };
 
     var resync = Resync(function * (wait) {
@@ -138,6 +140,30 @@ lab.experiment('Resync', function () {
       }
 
       return expected;
+    });
+
+    resync(next);
+  });
+  lab.test('out of order asyncronous operations', function (next) {
+    var result1 = 'result1';
+    var result2 = 'result2';
+    var operation1 = function (next) {
+      setTimeout(function () {
+        next(null, result1);
+      }, 100);
+    };
+    var operation2 = function (next) {
+      setTimeout(function () {
+        next(null, result2);
+      }, 25);
+    };
+
+    var resync = Resync(function * (wait) {
+      operation1(wait());
+      operation2(wait());
+
+      Code.expect(yield, 'yeild1').to.equal('result1');
+      Code.expect(yield, 'yeild2').to.equal('result2');
     });
 
     resync(next);

@@ -16,12 +16,19 @@ var Resync = function Resync(generator) {
     // Wait generates callbacks which collect arguments and pass them back to
     // the generator
     function wait() {
+      // Waiting calls reserve a position in the list of operations in order to
+      // ensure the yield sequence matches the call sequence
+      var token = {};
+      ops.push(token);
+
       return function next(err) {
+        var index = ops.indexOf(token);
 
         if (err) {
-          ops.push(function () {
+          ops[index] = function () {
             return iterator.throw(err);
-          });
+          };
+          return run();
         }
 
         var value = [].slice.call(arguments, 1);
@@ -30,9 +37,9 @@ var Resync = function Resync(generator) {
           value = value[0];
         }
 
-        ops.push(function () {
+        ops[index] = function () {
           return iterator.next(value);
-        });
+        };
 
         return run();
       };
@@ -48,7 +55,7 @@ var Resync = function Resync(generator) {
 
       isRunning = true;
 
-      while (ops.length > 0) {
+      while (typeof ops[0] === 'function') {
         var op = ops.shift();
         var current;
 
