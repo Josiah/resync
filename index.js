@@ -15,20 +15,12 @@ var Resync = function Resync(generator) {
 
     // Wait generates callbacks which collect arguments and pass them back to
     // the generator
-    function wait(options) {
-      if (!options) {
-        options = {};
-      }
-
+    function wait() {
       return function next(err) {
 
         if (err) {
           ops.push(function () {
-            if (typeof options.err === 'function') {
-              return options.err(err);
-            }
-
-            throw err;
+            return iterator.throw(err);
           });
         }
 
@@ -38,7 +30,9 @@ var Resync = function Resync(generator) {
           value = value[0];
         }
 
-        ops.push(function () { return value; });
+        ops.push(function () {
+          return iterator.next(value);
+        });
 
         return run();
       };
@@ -54,12 +48,12 @@ var Resync = function Resync(generator) {
 
       isRunning = true;
 
-      do {
+      while (ops.length > 0) {
         var op = ops.shift();
         var current;
 
         try {
-          current = iterator.next(op && op());
+          current = op();
         } catch (err) {
           last(err);
           return;
@@ -69,10 +63,13 @@ var Resync = function Resync(generator) {
           last(null, current.value);
           return;
         }
-      } while (ops.length > 0);
+      }
 
       isRunning = false;
     }
+
+    // First call is a noop
+    ops.push(function () { return iterator.next(); });
 
     run();
   };

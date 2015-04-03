@@ -123,45 +123,23 @@ lab.experiment('Resync', function () {
       return next();
     });
   });
-  lab.test('error squashing via callback handling', function (next) {
+  lab.test('in place error support', function (next) {
+    var expected = {};
     var error = new Error('Error handled by callback');
     var errorGenerator = function (next) {
       return next(error);
     };
 
     var resync = Resync(function * (wait) {
-      var expected = {};
-      var result = yield errorGenerator(wait({err: function (err) {
-        Code.expect(err, 'error matches thrown error').to.equal(error);
+      try {
+        yield errorGenerator(wait());
+      } catch (err) {
+        Code.expect(err, 'error is thrown in place').to.equal(err);
+      }
 
-        return expected;
-      }}));
-
-      Code.expect(result, 'result is yielded through').to.equal(expected);
+      return expected;
     });
 
     resync(next);
-  });
-  lab.test('error squashing via callback handling', function (next) {
-    var error1 = new Error('First error');
-    var error2 = new Error('Second error');
-    var errorGenerator = function (next) {
-      return next(error1);
-    };
-
-    var resync = Resync(function * (wait) {
-      var expected = {};
-      yield errorGenerator(wait({err: function (err) {
-        Code.expect(err, 'error matches thrown error').to.equal(error1);
-
-        throw error2;
-      }}));
-    });
-
-    resync(function (err) {
-      Code.expect(err, 'second error sent throug').to.equal(error2);
-
-      return next();
-    });
   });
 });

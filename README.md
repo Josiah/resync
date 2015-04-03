@@ -60,15 +60,11 @@ var Resync = require('resync');
 var Fs = require('fs');
 
 var loadProduct = Resync(function * (directory, wait) {
-  var files = yield Fs.readdir(directory, wait({
-    err: function (err) {
-      // Handle your recoverable errors here, then you can either return a value
-      // to be yielded or throw an error to be passed on to the callback
-      return [];
-    }
-  }));
-
-  return result.files;
+  try {
+    return yield Fs.readdir(directory, wait());
+  } catch (err) {
+    return [];
+  }
 });
 
 loadProduct('/var/awesome/dir', function (err, files) {
