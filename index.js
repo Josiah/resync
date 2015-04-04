@@ -9,6 +9,12 @@ var Resync = function Resync(generator) {
     var args = [].slice.call(arguments, 0);
     var last = args.pop();
 
+    // Put the last argument back if it's not a function
+    if (typeof last !== 'function') {
+      args.push(last);
+      last = function() {};
+    }
+
     args.push(wait);
 
     var iterator = generator.apply(null, args);
