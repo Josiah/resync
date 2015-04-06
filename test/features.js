@@ -168,15 +168,14 @@ lab.experiment('Resync', function () {
 
     resync(next);
   });
-  lab.test('resync calls without next', function (next) {
-    var value1 = {};
-    var value2 = {};
-    var op = function (next) { return next(null, value2); };
-    var resync = Resync(function * (actual1, wait) {
-      Code.expect(actual1).to.equal(value1);
-      Code.expect(yield op(wait())).to.equal(value2);
-    });
-    resync();
-    return next();
+  lab.test('resync calls without next throw an error', function (next) {
+    var resync = Resync(function * (actual1, wait) {});
+
+    try {
+      resync();
+    } catch (err) {
+      Code.expect(err.message).to.equal('Final parameter must be a callback');
+      return next();
+    }
   });
 });

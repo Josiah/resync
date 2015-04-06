@@ -11,8 +11,7 @@ var Resync = function Resync(generator) {
 
     // Put the last argument back if it's not a function
     if (typeof last !== 'function') {
-      args.push(last);
-      last = function() {};
+      throw new Error('Final parameter must be a callback');
     }
 
     args.push(wait);
