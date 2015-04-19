@@ -1,6 +1,10 @@
 'use strict';
 
 var Resync = function Resync(generator) {
+  if (generator.constructor.name !== 'GeneratorFunction') {
+    throw new Error('Resync function must be a generator');
+  }
+
   return function start() {
     var ops = [];
     var isRunning = false;
