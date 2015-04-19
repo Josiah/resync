@@ -190,4 +190,13 @@ lab.experiment('Resync', function () {
       return next();
     });
   });
+  lab.test('`this` is set appropriately', function (next) {
+    var obj = {
+      resync: Resync(function * () {
+        Code.expect(this).to.equal(obj);
+      })
+    };
+
+    obj.resync(next);
+  });
 });

@@ -16,7 +16,7 @@ var Resync = function Resync(generator) {
 
     args.push(wait);
 
-    var iterator = generator.apply(null, args);
+    var iterator = generator.apply(this, args);
 
     // Wait generates callbacks which collect arguments and pass them back to
     // the generator
