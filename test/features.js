@@ -178,14 +178,16 @@ lab.experiment('Resync', function () {
       return next();
     }
   });
-  lab.test('throws an error when passed function is not a generator', function (next) {
-    try {
-      Resync(function (wait) {});
-    } catch (err) {
-      Code.expect(err.message).to.equal('Resync function must be a generator');
-      return next();
-    }
+  lab.test('supports non-generator functions', function (next) {
+    var resync = Resync(function () { return 'bar'; });
 
-    return next(new Error('Resync should have thrown for non-generator'));
+    resync(function (err, result) {
+      if (err) {
+        return next(err);
+      }
+
+      Code.expect(result).to.equal('bar');
+      return next();
+    });
   });
 });

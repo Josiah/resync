@@ -1,10 +1,6 @@
 'use strict';
 
 var Resync = function Resync(generator) {
-  if (generator.constructor.name !== 'GeneratorFunction') {
-    throw new Error('Resync function must be a generator');
-  }
-
   return function start() {
     var ops = [];
     var isRunning = false;
@@ -82,6 +78,11 @@ var Resync = function Resync(generator) {
       }
 
       isRunning = false;
+    }
+
+    if (typeof iterator.next !== 'function') {
+      last(null, iterator);
+      return;
     }
 
     // First call is a noop
