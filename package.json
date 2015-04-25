@@ -1,6 +1,7 @@
 {
   "name": "resync",
   "description": "Yieldable node style callbacks",
+  "licence": "MIT",
   "keywords": [
     "resync",
     "yeild",
