@@ -199,4 +199,32 @@ lab.experiment('Resync', function () {
 
     obj.resync(next);
   });
+  lab.experiment('promise handling', function () {
+    lab.test('works for successful resolution', function (next) {
+      var resync = Resync(function * () {
+        var result = yield new Promise(function (resolve, reject) {
+          resolve('foo');
+        });
+
+        Code.expect(result).to.equal('foo');
+      });
+
+      resync(next);
+    });
+    lab.test('works for rejection', function (next) {
+      var resync = Resync(function * () {
+        var error = new Error();
+
+        try {
+          yield new Promise(function (resolve, reject) {
+            reject(error);
+          });
+        } catch (err) {
+          Code.expect(err).to.equal(error);
+        }
+      });
+
+      resync(next);
+    });
+  });
 });

@@ -1,5 +1,17 @@
 'use strict';
 
+function isPromise(value) {
+  if (typeof value !== 'object') {
+    return false;
+  }
+
+  if (typeof value.then === 'function' && typeof value.catch === 'function') {
+    return true;
+  }
+
+  return false;
+}
+
 var Resync = function Resync(generator) {
   return function start() {
     var ops = [];
@@ -50,6 +62,33 @@ var Resync = function Resync(generator) {
       };
     }
 
+    function await(promise) {
+      ops.push(promise);
+
+      function resolve(value) {
+        var index = ops.indexOf(promise);
+
+        ops[index] = function () {
+          return iterator.next(value);
+        };
+
+        return run();
+      }
+
+      function reject(error) {
+        var index = ops.indexOf(promise);
+
+        ops[index] = function () {
+          return iterator.throw(error);
+        };
+
+        return run();
+      }
+
+      promise.then(resolve);
+      promise.catch(reject);
+    }
+
     // Run continues the iteration of the generator
     function run() {
       // In the case of immediate callback use the generator may be running in
@@ -63,9 +102,16 @@ var Resync = function Resync(generator) {
       while (typeof ops[0] === 'function') {
         var op = ops.shift();
         var current;
+        var value;
 
         try {
           current = op();
+          value = current.value;
+
+          if (isPromise(value)) {
+            await(value);
+          }
+
         } catch (err) {
           last(err);
           return;
