@@ -18,6 +18,7 @@
     "iojs": "*"
   },
   "devDependencies": {
+    "bluebird": "^2.9.26",
     "code": "^1.3.0",
     "coveralls": "^2.11.2",
     "lab": "^5.5.0"

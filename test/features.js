@@ -3,6 +3,7 @@
 var Lab = require('lab');
 var Code = require('code');
 var Resync = require('../index');
+var Bluebird = require('bluebird');
 
 var lab = exports.lab = Lab.script();
 
@@ -222,6 +223,27 @@ lab.experiment('Resync', function () {
         } catch (err) {
           Code.expect(err).to.equal(error);
         }
+      });
+
+      resync(next);
+    });
+  });
+  lab.experiment('Bluebird promise handling', function () {
+    lab.test('handles bluebird errors', function (next) {
+      var error = new Error();
+      var p1 = function () {
+        return Bluebird.reject(error);
+      };
+
+      var resync = Resync(function * () {
+        try {
+          yield p1();
+        } catch (err) {
+          Code.expect(err).to.equal(error);
+          return;
+        }
+
+        throw new Error('Failed to handle bluebird error');
       });
 
       resync(next);
