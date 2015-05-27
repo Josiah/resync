@@ -85,8 +85,7 @@ var Resync = function Resync(generator) {
         return run();
       }
 
-      promise.then(resolve);
-      promise.catch(reject);
+      promise.then(resolve, reject);
     }
 
     // Run continues the iteration of the generator
