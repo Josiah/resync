@@ -3,6 +3,13 @@
 [![Build Status](https://travis-ci.org/Josiah/resync.svg)](https://travis-ci.org/Josiah/resync)
 [![Coverage Status](https://coveralls.io/repos/Josiah/resync/badge.svg)](https://coveralls.io/r/Josiah/resync)
 
+## Features
+
+- Node callback management like synchronous code
+- Promise support for
+  - Native ES6 promises
+  - Bluebird
+
 ## Usage
 
 ### Installation
