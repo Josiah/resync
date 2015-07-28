@@ -11,8 +11,8 @@ lab.experiment('Resync', function () {
   lab.test('syncronous callbacks', function (next) {
     var i = 0;
 
-    var inc = function (next) {
-      return next(null, ++i);
+    var inc = function (cb) {
+      return cb(null, ++i);
     };
 
     var resync = Resync(function * (wait) {
@@ -24,8 +24,8 @@ lab.experiment('Resync', function () {
       inc(wait());
       inc(wait());
 
-      Code.expect(yield, 'iteration 3').to.equal(3);
-      Code.expect(yield, 'iteration 4').to.equal(4);
+      Code.expect((yield), 'iteration 3').to.equal(3);
+      Code.expect((yield), 'iteration 4').to.equal(4);
 
       return 'foo';
     });
@@ -45,9 +45,9 @@ lab.experiment('Resync', function () {
   lab.test('asyncronous callbacks', function (next) {
     var i = 0;
 
-    var inc = function (next) {
+    var inc = function (cb) {
       setTimeout(function () {
-        return next(null, ++i);
+        return cb(null, ++i);
       }, 0);
     };
 
@@ -60,8 +60,8 @@ lab.experiment('Resync', function () {
       inc(wait());
       inc(wait());
 
-      Code.expect(yield, 'iteration 3').to.equal(3);
-      Code.expect(yield, 'iteration 4').to.equal(4);
+      Code.expect((yield), 'iteration 3').to.equal(3);
+      Code.expect((yield), 'iteration 4').to.equal(4);
 
       return 'foo';
     });
@@ -78,8 +78,8 @@ lab.experiment('Resync', function () {
     });
   });
   lab.test('multiple parameters', function (next) {
-    var run = function (next) {
-      return next(null, 1, 'one');
+    var run = function (cb) {
+      return cb(null, 1, 'one');
     };
 
     var resync = Resync(function * (wait) {
@@ -93,9 +93,9 @@ lab.experiment('Resync', function () {
     resync(next);
   });
   lab.test('callback error handling', function (next) {
-    var error = function (next) {
+    var error = function (cb) {
       setTimeout(function () {
-        next(new Error('Error passed to callback'));
+        cb(new Error('Error passed to callback'));
       }, 5);
     };
 
@@ -111,7 +111,7 @@ lab.experiment('Resync', function () {
     });
   });
   lab.test('thrown error handling', function (next) {
-    var error = function (next) {
+    var error = function () {
       throw new Error('Thrown error');
     };
 
@@ -129,8 +129,8 @@ lab.experiment('Resync', function () {
   lab.test('in place error support', function (next) {
     var expected = {};
     var error = new Error('Error handled by callback');
-    var errorGenerator = function (next) {
-      return next(error);
+    var errorGenerator = function (cb) {
+      return cb(error);
     };
 
     var resync = Resync(function * (wait) {
@@ -148,14 +148,14 @@ lab.experiment('Resync', function () {
   lab.test('out of order asyncronous operations', function (next) {
     var result1 = 'result1';
     var result2 = 'result2';
-    var operation1 = function (next) {
+    var operation1 = function (cb) {
       setTimeout(function () {
-        next(null, result1);
+        cb(null, result1);
       }, 100);
     };
-    var operation2 = function (next) {
+    var operation2 = function (cb) {
       setTimeout(function () {
-        next(null, result2);
+        cb(null, result2);
       }, 25);
     };
 
@@ -163,14 +163,14 @@ lab.experiment('Resync', function () {
       operation1(wait());
       operation2(wait());
 
-      Code.expect(yield, 'yeild1').to.equal('result1');
-      Code.expect(yield, 'yeild2').to.equal('result2');
+      Code.expect((yield), 'yeild1').to.equal('result1');
+      Code.expect((yield), 'yeild2').to.equal('result2');
     });
 
     resync(next);
   });
   lab.test('resync calls without next throw an error', function (next) {
-    var resync = Resync(function * (actual1, wait) {});
+    var resync = Resync(function * () {});
 
     try {
       resync();
@@ -203,7 +203,7 @@ lab.experiment('Resync', function () {
   lab.experiment('promise handling', function () {
     lab.test('works for successful resolution', function (next) {
       var resync = Resync(function * () {
-        var result = yield new Promise(function (resolve, reject) {
+        var result = yield new Promise(function (resolve) {
           resolve('foo');
         });
 
