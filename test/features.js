@@ -169,6 +169,15 @@ lab.experiment('Resync', function () {
 
     resync(next);
   });
+  lab.test('yield calls without wait or promise throw an error', function (next) {
+    var resync = Resync(function * () { return yield null; });
+
+    resync(function (err) {
+      Code.expect(err.message).to.equal('Not awaiting any operations');
+
+      return next();
+    });
+  });
   lab.test('resync calls without next throw an error', function (next) {
     var resync = Resync(function * () {});
 

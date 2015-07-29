@@ -5,6 +5,10 @@ function isPromise(value) {
     return false;
   }
 
+  if (value === null) {
+    return false;
+  }
+
   if (typeof value.then === 'function' && typeof value.catch === 'function') {
     return true;
   }
@@ -33,54 +37,33 @@ var Resync = function Resync(generator) {
     // Wait generates callbacks which collect arguments and pass them back to
     // the generator
     function wait() {
-      // Waiting calls reserve a position in the list of operations in order to
-      // ensure the yield sequence matches the call sequence
-      var token = {};
-      ops.push(token);
+      const op = {waiting: true};
+      ops.push(op);
 
-      return function next(err) {
-        var index = ops.indexOf(token);
-
-        if (err) {
-          ops[index] = function () {
-            return iterator.throw(err);
-          };
-          return run();
-        }
-
-        var value = [].slice.call(arguments, 1);
-
-        if (value.length === 1) {
-          value = value[0];
-        }
-
-        ops[index] = function () {
-          return iterator.next(value);
-        };
+      return function next(err, value) {
+        op.waiting = false;
+        op.error = err;
+        op.result = arguments.length > 2 ? [].slice.call(arguments, 1) : value;
 
         return run();
       };
     }
 
     function await(promise) {
-      ops.push(promise);
+      const op = {waiting: true, promise: promise};
+      ops.push(op);
 
       function resolve(value) {
-        var index = ops.indexOf(promise);
-
-        ops[index] = function () {
-          return iterator.next(value);
-        };
+        op.waiting = false;
+        op.error = null;
+        op.result = value;
 
         return run();
       }
 
       function reject(error) {
-        var index = ops.indexOf(promise);
-
-        ops[index] = function () {
-          return iterator.throw(error);
-        };
+        op.waiting = false;
+        op.error = error;
 
         return run();
       }
@@ -98,13 +81,13 @@ var Resync = function Resync(generator) {
 
       isRunning = true;
 
-      while (typeof ops[0] === 'function') {
-        var op = ops.shift();
-        var current;
-        var value;
+      while (ops.length > 0 && !ops[0].waiting) {
+        let op = ops.shift();
+        let current;
+        let value;
 
         try {
-          current = op();
+          current = op.error ? iterator.throw(op.error) : iterator.next(op.result);
           value = current.value;
 
           if (isPromise(value)) {
@@ -122,6 +105,11 @@ var Resync = function Resync(generator) {
         }
       }
 
+      if (ops.length === 0) {
+        last(new Error('Not awaiting any operations'));
+        return;
+      }
+
       isRunning = false;
     }
 
@@ -131,7 +119,7 @@ var Resync = function Resync(generator) {
     }
 
     // First call is a noop
-    ops.push(function () { return iterator.next(); });
+    ops.push({waiting: false});
 
     run();
   };
