@@ -19,11 +19,11 @@
   },
   "devDependencies": {
     "bluebird": "^2.9.26",
-    "code": "^1.3.0",
+    "code": "^1.4.1",
     "coveralls": "^2.11.2",
-    "lab": "^5.5.0"
+    "lab": "^5.14.0"
   },
   "scripts": {
-    "test": "lab -vct 100"
+    "test": "lab -vc -t 100"
   }
 }

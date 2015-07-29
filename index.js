@@ -16,10 +16,53 @@ function isPromise(value) {
   return false;
 }
 
+function isWaiting(op) {
+  return op.waiting;
+}
+
+function isReady(ops, all) {
+  if (!all) {
+    return !isWaiting(ops[0]);
+  }
+
+  return ops.some(isError) || !ops.some(isWaiting);
+}
+
+function isError(op) {
+  return !!op.error;
+}
+
+function getError(ops, all) {
+  for (let i = 0, il = ops.length; i < il; i++) {
+    if (ops[i].error) {
+      return ops[i].error;
+    }
+
+    if (!all) {
+      break;
+    }
+  }
+
+  return null;
+}
+
+function getResult(op) {
+  return op.result;
+}
+
+function getResults(ops, all) {
+  if (!all) {
+    return getResult(ops[0]);
+  }
+
+  return ops.map(getResult);
+}
+
 var Resync = function Resync(generator) {
   return function start() {
     var ops = [];
     var isRunning = false;
+    let all = false;
 
     // Switch the last parameter of this callback with the
     var args = [].slice.call(arguments, 0);
@@ -81,19 +124,23 @@ var Resync = function Resync(generator) {
 
       isRunning = true;
 
-      while (ops.length > 0 && !ops[0].waiting) {
-        let op = ops.shift();
+      while (ops.length > 0 && isReady(ops, all)) {
         let current;
         let value;
 
         try {
-          current = op.error ? iterator.throw(op.error) : iterator.next(op.result);
+          let error = getError(ops, all);
+          let result = getResults(ops, all);
+
+          current = error ? iterator.throw(error) : iterator.next(result);
+          ops.splice(0, all ? ops.length : 1);
           value = current.value;
 
           if (isPromise(value)) {
             await(value);
           }
 
+          all = value === Array;
         } catch (err) {
           last(err);
           return;

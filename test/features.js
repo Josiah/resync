@@ -209,6 +209,64 @@ lab.experiment('Resync', function () {
 
     obj.resync(next);
   });
+  lab.test('allows yielding all outstaiding results as an array', function (next) {
+    var fn = function (value, cb) {
+      setTimeout(function () {
+        cb(null, value);
+      }, Math.random() * 100);
+    };
+
+    var resync = Resync(function * (wait) {
+      fn('A', wait());
+      fn('B', wait());
+      fn('C', wait());
+
+      return yield Array;
+    });
+
+    resync(function (err, result) {
+      if (err) {
+        return next(err);
+      }
+
+      Code.expect(result).to.deep.equal(['A', 'B', 'C']);
+
+      return next();
+    });
+  });
+  lab.test('yields first error when yielding an array', function (next) {
+    var error = new Error();
+    var calls = [];
+
+    var fn = function (value, ms, cb) {
+      setTimeout(function () {
+        calls.push(value);
+        cb(null, value);
+      }, ms);
+    };
+
+    var fe = function (ms, cb) {
+      setTimeout(function () {
+        cb(error);
+      }, ms);
+    };
+
+    var resync = Resync(function * (wait) {
+      fn('A', 10, wait());
+      fe(15, wait());
+      fn('B', 20, wait());
+      fn('C', 20, wait());
+
+      return yield Array;
+    });
+
+    resync(function (err) {
+      Code.expect(err).to.equal(error);
+      Code.expect(calls).to.deep.equal(['A']);
+
+      return next();
+    });
+  });
   lab.experiment('promise handling', function () {
     lab.test('works for successful resolution', function (next) {
       var resync = Resync(function * () {

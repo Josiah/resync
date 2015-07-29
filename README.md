@@ -41,6 +41,23 @@ loadProducts(function (err, products) {
   // Handle those errors & do something with your products
 });
 ```
+
+### Multiple results
+```js
+var Resync = require('resync');
+var Redis = require('redis');
+
+var loadCachedProducts = Resync(function * (ids, wait) {
+  var redis = Redis.createClient();
+
+  for (let id of ids) {
+    redis.hgetall(`products:${id}`, wait());
+  }
+
+  return yield Array;
+});
+```
+
 ### Passing parameters
 ```js
 var Resync = require('resync');
