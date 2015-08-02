@@ -22,7 +22,7 @@ function isWaiting(op) {
 
 function isReady(ops, all) {
   if (!all) {
-    return !isWaiting(ops[0]);
+    return ops.length > 0 && !isWaiting(ops[0]);
   }
 
   return ops.some(isError) || !ops.some(isWaiting);
@@ -124,7 +124,7 @@ var Resync = function Resync(generator) {
 
       isRunning = true;
 
-      while (ops.length > 0 && isReady(ops, all)) {
+      while (isReady(ops, all)) {
         let current;
         let value;
 

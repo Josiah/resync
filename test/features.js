@@ -200,6 +200,21 @@ lab.experiment('Resync', function () {
       return next();
     });
   });
+  lab.test('yields an empty array when no waiting calls present', function (next) {
+    var resync = Resync(function * () {
+      return yield Array;
+    });
+
+    resync(function (err, values) {
+      if (err) {
+        return next(err);
+      }
+
+      Code.expect(values).to.deep.equal([]);
+
+      return next();
+    });
+  });
   lab.test('`this` is set appropriately', function (next) {
     var obj = {
       resync: Resync(function * () {
@@ -208,6 +223,45 @@ lab.experiment('Resync', function () {
     };
 
     obj.resync(next);
+  });
+  lab.test('handles callbacks with empty arrays', function (next) {
+    var array = [];
+    var fn = function (cb) {
+      cb(null, array);
+    };
+
+    var resync = Resync(function * (wait) {
+      return yield fn(wait());
+    });
+
+    resync(function (err, value) {
+      if (err) {
+        return next(err);
+      }
+
+      Code.expect(value).to.equal(array);
+
+      return next();
+    });
+  });
+  lab.test('handles callbacks with undefined', function (next) {
+    var fn = function (cb) {
+      cb(null, undefined);
+    };
+
+    var resync = Resync(function * (wait) {
+      return yield fn(wait());
+    });
+
+    resync(function (err, value) {
+      if (err) {
+        return next(err);
+      }
+
+      Code.expect(value).to.equal(undefined);
+
+      return next();
+    });
   });
   lab.test('allows yielding all outstaiding results as an array', function (next) {
     var fn = function (value, cb) {
