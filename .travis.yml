@@ -1,4 +1,4 @@
 language: node_js
-script: npm test && node_modules/.bin/lab -r lcov | node_modules/.bin/coveralls
+script: npm test && node_modules/.bin/lab -r lcov
 node_js:
   - "iojs"
